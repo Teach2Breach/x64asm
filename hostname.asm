@@ -1,9 +1,10 @@
 includelib kernel32.lib
 
-extrn __imp_GetComputerNameA:proc
-extrn __imp_GetStdHandle:proc
-extrn __imp_WriteConsoleA:proc
-extrn __imp_ExitProcess:proc
+; External function declarations
+extern GetComputerNameA: proc
+extern GetStdHandle: proc
+extern WriteConsoleA: proc
+extern ExitProcess: proc
 
 .DATA
 buffer db 256 dup(?)
@@ -12,8 +13,6 @@ consoleMsg db "Hostname: ", 0
 consoleMsgLen dq $ - consoleMsg - 1
 bytesWritten dq ?
 
-; without api hashing
-
 .CODE
 main PROC
     sub rsp, 40h    ; Reserve shadow space and align stack
@@ -21,13 +20,13 @@ main PROC
     ; Get hostname
     lea rcx, buffer
     lea rdx, bufferSize
-    call qword ptr __imp_GetComputerNameA
+    call GetComputerNameA
     test rax, rax
     jz error
 
     ; Get console handle
     mov rcx, -11    ; STD_OUTPUT_HANDLE
-    call qword ptr __imp_GetStdHandle
+    call GetStdHandle
     mov rbx, rax    ; Save console handle
 
     ; Print "Hostname: " message
@@ -37,7 +36,7 @@ main PROC
     lea r9, bytesWritten
     xor rax, rax
     mov [rsp+20h], rax  ; Reserved parameter (NULL)
-    call qword ptr __imp_WriteConsoleA
+    call WriteConsoleA
 
     ; Print actual hostname
     mov rcx, rbx
@@ -46,7 +45,7 @@ main PROC
     lea r9, bytesWritten
     xor rax, rax
     mov [rsp+20h], rax  ; Reserved parameter (NULL)
-    call qword ptr __imp_WriteConsoleA
+    call WriteConsoleA
 
     jmp exit
 
@@ -56,7 +55,7 @@ error:
 exit:
     add rsp, 40h
     xor rcx, rcx    ; Exit code 0
-    call qword ptr __imp_ExitProcess
+    call ExitProcess
 
 main ENDP
 END
