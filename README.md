@@ -17,3 +17,4 @@ run with:
 
 ```read.exe```
 
+TODO: API hashing. strings are currently easily located through debugger.
